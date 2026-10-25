@@ -1,39 +1,25 @@
 name: CI
 
-on:
-  push:
-    branches: [ main ]
+on: push: branches: [main]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+workflow_dispatch:
 
-    steps:
-    - uses: actions/checkout@v4
+jobs: build: runs-on: ubuntu-latest
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-    - name: Install Buildozer dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config make libltdl-dev
+  - name: Build Android APK
+    uses: ArtemSBulgakov/buildozer-action@v1
+    id: buildozer
+    with:
+      command: buildozer android debug
+      buildozer_version: stable
 
-    - name: Install Buildozer and Cython
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython kivy
-
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      with:
-        command: buildozer android debug
-        buildozer_version: master
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: package
-        path: bin/*.apk
+  - name: Upload APK Artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: android-apk
+      path: ${{ steps.buildozer.outputs.filename }}
+      if-no-files-found: error
