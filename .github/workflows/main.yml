@@ -59,6 +59,11 @@ jobs:
 
     - name: Build APK
       run: |
+        # 自動同意 Android SDK 的所有授權協議，避免卡在 Accept? (y/N)
+        export YES="yes"
+        yes | buildozer android debug 2>&1 | tee build.log || true
+        
+        # 再次確保如果上面沒抓到，直接執行 buildozer
         buildozer android debug 2>&1 | tee build.log
       shell: bash
 
